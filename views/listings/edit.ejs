@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WanderLust - Edit Listing</title>
+</head>
+<body> <h3>Edit your Listing</h3>
+    
+    <form action="/listings/<%= listing._id %>" method="POST">
+        <label for="title">Title:</label><br>
+        <input type="text" name="listing[title]" value="<%= listing.title %>" required>
+        <br><br>
+        
+        <label for="description">Description:</label><br>
+        <textarea name="listing[description]"><%= listing.description %></textarea>
+        <br><br>
+        
+        <label for="image">Image URL:</label><br>
+        <input type="text" name="listing[image]" value="<%= listing.image && listing.image.url ? listing.image.url : listing.image %>">
+        <br><br>
+        
+        <label for="price">Price:</label><br>
+        <input type="number" name="listing[price]" value="<%= listing.price %>">
+        <br><br>
+        
+        <label for="location">Location:</label><br>
+        <input type="text" name="listing[location]" value="<%= listing.location %>">
+        <br><br>
+        
+        <label for="country">Country:</label><br>
+        <input type="text" name="listing[country]" value="<%= listing.country %>">
+        <br><br>
+        
+        <button type="submit">Save Changes</button>
+    </form>
+</body>
+</html>
