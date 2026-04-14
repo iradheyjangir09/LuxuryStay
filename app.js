@@ -83,3 +83,9 @@ const port = 8080;
 app.listen(port, () => {
     console.log(`Server live: http://localhost:${port}`);
 });
+
+const serverless = require('serverless-http');
+
+// सारा पुराना रूट्स (get, post) इयां ही रहण द्यो
+
+module.exports.handler = serverless(app);
