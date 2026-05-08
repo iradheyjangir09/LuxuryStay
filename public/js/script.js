@@ -58,6 +58,7 @@ document.querySelectorAll('.listing-gallery').forEach(function (gallery) {
   var mainImage = gallery.querySelector('[data-gallery-main]')
   var prevButton = gallery.querySelector('[data-gallery-prev]')
   var nextButton = gallery.querySelector('[data-gallery-next]')
+  var thumbButtons = gallery.querySelectorAll('[data-gallery-thumb]')
   var images = []
 
   try {
@@ -71,6 +72,9 @@ document.querySelectorAll('.listing-gallery').forEach(function (gallery) {
 
   function updateGalleryState() {
     gallery.classList.toggle('is-gallery-clean', currentIndex !== 0)
+    thumbButtons.forEach(function (button) {
+      button.classList.toggle('is-active', Number(button.getAttribute('data-gallery-thumb')) === currentIndex)
+    })
   }
 
   function setImage(index) {
@@ -128,6 +132,12 @@ document.querySelectorAll('.listing-gallery').forEach(function (gallery) {
       })
     }
   }
+
+  thumbButtons.forEach(function (button) {
+    button.addEventListener('click', function () {
+      setImage(Number(button.getAttribute('data-gallery-thumb')))
+    })
+  })
 })
 
 document.querySelectorAll('.listing-upload-form').forEach(function (form) {

@@ -42,6 +42,26 @@ const hasMultipleGallery = galleryImages.length > 1;
                 onerror="this.onerror=null;this.src='<%= listing.imageFallbackUrl || 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=800&q=60' %>';"
             >
         </div>
+        <% if (galleryImages.length > 1) { %>
+            <div class="gallery-thumb-strip" aria-label="Listing photos">
+                <% galleryImages.slice(0, 6).forEach((imageUrl, index) => { %>
+                    <button
+                        type="button"
+                        class="gallery-thumb-btn <%= index === 0 ? 'is-active' : '' %>"
+                        data-gallery-thumb="<%= index %>"
+                        aria-label="Show photo <%= index + 1 %>"
+                    >
+                        <img
+                            src="<%= imageUrl %>"
+                            class="gallery-thumb-img"
+                            alt="listing photo <%= index + 1 %>"
+                            loading="lazy"
+                            decoding="async"
+                        >
+                    </button>
+                <% }) %>
+            </div>
+        <% } %>
     </div>
 </div>
 
