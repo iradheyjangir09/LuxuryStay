@@ -43,6 +43,14 @@ app.use(express.urlencoded({ extended: true }));
 app.use(methodOverride("_method"));
 app.use(express.static(path.join(__dirname, "/public")));
 
+app.get("/healthz", (req, res) => {
+  res.status(200).send("ok");
+});
+
+app.get("/", (req, res) => {
+  res.redirect("/listings");
+});
+
 // Trust proxy (important for Render/production)
 app.set("trust proxy", 1);
 
@@ -92,10 +100,6 @@ app.use((req, res, next) => {
   res.locals.error = req.flash("error");
   res.locals.currentUser = req.user;
   next();
-});
-
-app.get("/healthz", (req, res) => {
-  res.status(200).send("ok");
 });
 
 // Routes
