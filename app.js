@@ -121,11 +121,14 @@ async function startServer() {
     console.log(`server is listening to port ${port}`);
   });
 
-  await mongoose.connect(dbUrl, { serverSelectionTimeoutMS: 10000 });
-  console.log("connected to DB");
+  try {
+    await mongoose.connect(dbUrl, { serverSelectionTimeoutMS: 10000 });
+    console.log("connected to DB");
+  } catch (err) {
+    console.error("Failed to connect to DB", err);
+  }
 }
 
 startServer().catch((err) => {
   console.error("Failed to start server", err);
-  process.exit(1);
 });
