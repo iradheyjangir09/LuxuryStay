@@ -96,6 +96,17 @@
         margin-top: 0.45rem;
         color: #222;
         font-size: 0.96rem;
+        flex-wrap: wrap;
+        line-height: 1.2;
+    }
+
+    .listing-price-line b,
+    .listing-price-line span {
+        white-space: nowrap;
+    }
+
+    .listing-price-line span {
+        color: #666;
     }
 
     .listing-highlight-line i {
@@ -241,7 +252,8 @@
                                         <span><%= listing.highlight && listing.highlight.label ? listing.highlight.label : 'Comfort Stay' %></span>
                                     </span>
                                     <span class="listing-price-line">
-                                        <b>&#8377; <%= listing.price ? listing.price.toLocaleString("en-IN") : "Price not available" %></b> / night
+                                        <b>&#8377; <%= listing.price ? listing.price.toLocaleString("en-IN") : "Price not available" %></b>
+                                        <span>/ night</span>
                                     </span>
                                 </p>
                             </div>

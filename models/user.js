@@ -10,6 +10,15 @@ const userSchema = new Schema({
     },
 });
 
+userSchema.virtual("isAdmin").get(function () {
+    const adminEmails = (process.env.ADMIN_EMAILS || "")
+        .split(",")
+        .map((email) => email.trim().toLowerCase())
+        .filter(Boolean);
+
+    return Boolean(this.email && adminEmails.includes(this.email.toLowerCase()));
+});
+
 userSchema.plugin(passportLocalMongoose);
 
 module.exports = mongoose.model("User", userSchema);

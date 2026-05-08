@@ -71,7 +71,7 @@ const hasMultipleGallery = galleryImages.length > 1;
     <div class="row mb-5">
         <div class="col-12 col-md-8 offset-md-2">
             <!-- Edit/Delete Buttons for Owner -->
-            <% if (currentUser && listing.owner && currentUser._id.equals(listing.owner._id)) { %>
+            <% if (currentUser && (currentUser.isAdmin || (listing.owner && currentUser._id.equals(listing.owner._id)))) { %>
                 <div class="d-flex gap-3 mb-4 flex-wrap">
                     <a href="/listings/<%= listing._id %>/edit" class="btn btn-dark edit-btn px-4 py-2 flex-fill">Edit</a>
                     <form method="POST" action="/listings/<%= listing._id %>?_method=DELETE" class="m-0 flex-fill">

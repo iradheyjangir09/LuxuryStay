@@ -12,6 +12,8 @@ services:
         sync: false
       - key: SECRET
         sync: false
+      - key: ADMIN_EMAILS
+        sync: false
       - key: CLOUDINARY_CLOUD_NAME
         sync: false
       - key: CLOUDINARY_API_KEY

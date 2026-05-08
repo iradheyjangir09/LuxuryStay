@@ -55,7 +55,7 @@ module.exports.isOwner = async (req, res, next) => {
         return res.redirect("/listings");
     }
 
-    if (!listing.owner || !listing.owner.equals(req.user._id)) {
+    if (!req.user?.isAdmin && (!listing.owner || !listing.owner.equals(req.user._id))) {
         req.flash("error", "You can only manage your own listing!");
         return res.redirect(`/listings/${id}`);
     }

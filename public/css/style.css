@@ -137,6 +137,17 @@ img {
     margin-top: 0.45rem;
     color: #272727;
     font-size: 0.96rem;
+    flex-wrap: wrap;
+    line-height: 1.2;
+}
+
+.listing-price-line b {
+    white-space: nowrap;
+}
+
+.listing-price-line span {
+    color: #666;
+    white-space: nowrap;
 }
 /* Create Page Button */
 .add-btn {
