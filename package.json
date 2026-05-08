@@ -5,7 +5,7 @@
   "main": "app.js",
   "type": "commonjs",
   "engines": {
-    "node": "25.9.0"
+    "node": ">=20 <26"
   },
   "scripts": {
     "start": "node app.js",
@@ -24,11 +24,11 @@
     "dotenv": "^17.4.2",
     "ejs": "^5.0.2",
     "ejs-mate": "^4.0.0",
-    "express": "^5.1.0",
+    "express": "^4.22.1",
     "express-session": "^1.19.0",
     "joi": "^18.1.2",
     "method-override": "^3.0.0",
-    "mongoose": "^9.4.1",
+    "mongoose": "^8.23.1",
     "multer": "^2.1.1",
     "netlify-lambda": "^0.4.0",
     "passport": "^0.7.0",

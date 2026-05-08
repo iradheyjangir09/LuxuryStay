@@ -16,10 +16,18 @@ const { isLoggedIn, isOwner } = require("../middleware.js");
 const { FALLBACK_MONGO_URL } = require("../config/db.js");
 const { cloudinary, hasCloudinaryConfig } = require("../config/cloudinary.js");
 
-const fallbackConnection = mongoose.createConnection(FALLBACK_MONGO_URL);
-const FallbackListing = fallbackConnection.model("Listing", Listing.schema);
-const FallbackReview = fallbackConnection.model("Review", Review.schema);
-const FallbackUser = fallbackConnection.model("User", User.schema);
+const fallbackConnection = FALLBACK_MONGO_URL
+    ? mongoose.createConnection(FALLBACK_MONGO_URL, { serverSelectionTimeoutMS: 2000 })
+    : null;
+const FallbackListing = fallbackConnection ? fallbackConnection.model("Listing", Listing.schema) : null;
+const FallbackReview = fallbackConnection ? fallbackConnection.model("Review", Review.schema) : null;
+const FallbackUser = fallbackConnection ? fallbackConnection.model("User", User.schema) : null;
+
+if (fallbackConnection) {
+    fallbackConnection.on("error", (err) => {
+        console.log("Fallback DB connection error", err.message);
+    });
+}
 
 const uploadDir = path.join(__dirname, "..", "uploads");
 fs.mkdirSync(uploadDir, { recursive: true });
@@ -402,7 +410,9 @@ async function attachReviewAuthorNames(listing) {
     const uniqueAuthorIds = [...new Set(authorIds)];
     const [primaryUsers, fallbackUsers] = await Promise.all([
         User.find({ _id: { $in: uniqueAuthorIds } }, { username: 1 }).lean(),
-        FallbackUser.find({ _id: { $in: uniqueAuthorIds } }, { username: 1 }).lean()
+        FallbackUser
+            ? FallbackUser.find({ _id: { $in: uniqueAuthorIds } }, { username: 1 }).lean()
+            : Promise.resolve([])
     ]);
     const usernameById = new Map(
         [...primaryUsers, ...fallbackUsers].map((user) => [String(user._id), user.username])
@@ -437,23 +447,25 @@ async function findListingById(id) {
         return { listing, source: "primary" };
     }
 
-    // Fallback DB में खोजो
-    listing = await FallbackListing.findById(id)
-        .populate({
-            path: "owner",
-            model: User
-        })
-        .populate({
-            path: "reviews",
-            model: FallbackReview,
-            populate: { path: "author", model: User },
-            options: { sort: { createdAt: -1 } }
-        });
+    if (FallbackListing) {
+        // Fallback DB में खोजो
+        listing = await FallbackListing.findById(id)
+            .populate({
+                path: "owner",
+                model: User
+            })
+            .populate({
+                path: "reviews",
+                model: FallbackReview,
+                populate: { path: "author", model: User },
+                options: { sort: { createdAt: -1 } }
+            });
 
-    if (listing) {
-        attachListingImageUrls(listing);
-        await attachReviewAuthorNames(listing);
-        return { listing, source: "fallback" };
+        if (listing) {
+            attachListingImageUrls(listing);
+            await attachReviewAuthorNames(listing);
+            return { listing, source: "fallback" };
+        }
     }
 
     return { listing: null, source: null };
@@ -466,7 +478,7 @@ router.get("/", wrapAsync(async (req, res) => {
     const activeFilter = FILTER_KEY_SET.has(req.query.filter) ? req.query.filter : "";
     const searchQuery = typeof req.query.q === "string" ? req.query.q.trim() : "";
     let allListings = await Listing.find({});
-    if (allListings.length === 0) {
+    if (allListings.length === 0 && FallbackListing) {
         allListings = await FallbackListing.find({});
     }
     allListings.forEach((listing) => {
@@ -545,7 +557,7 @@ router.put("/:id",
         let currentListing = await Listing.findById(id);
         let updateTarget = currentListing ? Listing : FallbackListing;
 
-        if (!currentListing) {
+        if (!currentListing && FallbackListing) {
             currentListing = await FallbackListing.findById(id);
         }
 
@@ -578,7 +590,7 @@ router.delete("/:id", isLoggedIn, isOwner, wrapAsync(async (req, res) => {
     const { id } = req.params;
 
     let listing = await Listing.findByIdAndDelete(id);
-    if (!listing) {
+    if (!listing && FallbackListing) {
         listing = await FallbackListing.findByIdAndDelete(id);
     }
 

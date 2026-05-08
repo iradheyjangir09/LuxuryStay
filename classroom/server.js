@@ -8,6 +8,7 @@ const flash = require("connect-flash"); // फ्लैश खातर
 const users = require("./routes/user.js");
 const posts = require("./routes/post.js");
 const PORT = process.env.PORT || 3000;
+const SESSION_SECRET = process.env.SECRET || process.env.SESSION_SECRET || "development-session-secret";
 
 // View Engine सेटअप
 app.set("view engine", "ejs");
@@ -16,10 +17,10 @@ app.set("views", path.join(__dirname, "views"));
 // मिडिलवेयर
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(cookieParser("secret-key"));
+app.use(cookieParser(SESSION_SECRET));
 
 app.use(session({
-  secret: "mysupersecretstring",
+  secret: SESSION_SECRET,
   resave: false,
   saveUninitialized: true
 }));

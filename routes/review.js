@@ -10,9 +10,17 @@ const Listing = require("../models/listing.js");
 const { FALLBACK_MONGO_URL } = require("../config/db.js");
 const { isLoggedIn, isReviewAuthor, validateReview } = require("../middleware.js");
 
-const fallbackConnection = mongoose.createConnection(FALLBACK_MONGO_URL);
-const FallbackListing = fallbackConnection.model("Listing", Listing.schema);
-const FallbackReview = fallbackConnection.model("Review", Review.schema);
+const fallbackConnection = FALLBACK_MONGO_URL
+    ? mongoose.createConnection(FALLBACK_MONGO_URL, { serverSelectionTimeoutMS: 2000 })
+    : null;
+const FallbackListing = fallbackConnection ? fallbackConnection.model("Listing", Listing.schema) : null;
+const FallbackReview = fallbackConnection ? fallbackConnection.model("Review", Review.schema) : null;
+
+if (fallbackConnection) {
+    fallbackConnection.on("error", (err) => {
+        console.log("Fallback DB connection error", err.message);
+    });
+}
 
 function buildReviewSnapshot(reviewDoc) {
     return {
@@ -55,6 +63,11 @@ router.post("/", isLoggedIn, validateReview, wrapAsync(async (req, res) => {
 
     if (listing) {
         return res.redirect(`/listings/${listing._id}`);
+    }
+
+    if (!FallbackListing || !FallbackReview) {
+        await Review.findByIdAndDelete(newReview._id);
+        throw new ExpressError(404, "Listing not found!");
     }
 
     // 3. जे Primary में कोनी मिल्यो तो Fallback DB चेक करो
@@ -107,16 +120,18 @@ router.delete("/:reviewId", isLoggedIn, isReviewAuthor, wrapAsync(async (req, re
         return res.redirect(`/listings/${id}`);
     }
 
-    listing = await FallbackListing.findByIdAndUpdate(id, {
-        $pull: {
-            reviews: reviewId,
-            reviewSnapshots: { reviewId: new mongoose.Types.ObjectId(reviewId) }
-        }
-    });
+    if (FallbackListing && FallbackReview) {
+        listing = await FallbackListing.findByIdAndUpdate(id, {
+            $pull: {
+                reviews: reviewId,
+                reviewSnapshots: { reviewId: new mongoose.Types.ObjectId(reviewId) }
+            }
+        });
 
-    if (listing) {
-        await FallbackReview.findByIdAndDelete(reviewId);
-        return res.redirect(`/listings/${id}`);
+        if (listing) {
+            await FallbackReview.findByIdAndDelete(reviewId);
+            return res.redirect(`/listings/${id}`);
+        }
     }
 
     throw new ExpressError(404, "Listing not found!");

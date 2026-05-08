@@ -5,9 +5,17 @@ const { reviewSchema } = require("./schema.js");
 const { FALLBACK_MONGO_URL } = require("./config/db.js");
 const ExpressError = require("./utils/ExpressError.js");
 
-const fallbackConnection = mongoose.createConnection(FALLBACK_MONGO_URL);
-const FallbackListing = fallbackConnection.model("Listing", Listing.schema);
-const FallbackReview = fallbackConnection.model("Review", Review.schema);
+const fallbackConnection = FALLBACK_MONGO_URL
+    ? mongoose.createConnection(FALLBACK_MONGO_URL, { serverSelectionTimeoutMS: 2000 })
+    : null;
+const FallbackListing = fallbackConnection ? fallbackConnection.model("Listing", Listing.schema) : null;
+const FallbackReview = fallbackConnection ? fallbackConnection.model("Review", Review.schema) : null;
+
+if (fallbackConnection) {
+    fallbackConnection.on("error", (err) => {
+        console.log("Fallback DB connection error", err.message);
+    });
+}
 
 module.exports.isLoggedIn = (req, res, next) => {
     if (!req.isAuthenticated()) {
@@ -39,7 +47,8 @@ module.exports.validateReview = (req, res, next) => {
 
 module.exports.isOwner = async (req, res, next) => {
     const { id } = req.params;
-    const listing = await Listing.findById(id) || await FallbackListing.findById(id);
+    const listing = await Listing.findById(id) ||
+        (FallbackListing ? await FallbackListing.findById(id) : null);
 
     if (!listing) {
         req.flash("error", "Listing you requested for does not exist!");
@@ -56,7 +65,8 @@ module.exports.isOwner = async (req, res, next) => {
 
 module.exports.isReviewAuthor = async (req, res, next) => {
     const { reviewId, id } = req.params;
-    const review = await Review.findById(reviewId) || await FallbackReview.findById(reviewId);
+    const review = await Review.findById(reviewId) ||
+        (FallbackReview ? await FallbackReview.findById(reviewId) : null);
 
     if (!review) {
         req.flash("error", "Review you requested for does not exist!");
