@@ -94,6 +94,10 @@ app.use((req, res, next) => {
   next();
 });
 
+app.get("/healthz", (req, res) => {
+  res.status(200).send("ok");
+});
+
 // Routes
 app.use("/listings", listingRouter);
 app.use("/listings/:id/reviews", reviewRouter);
@@ -113,12 +117,12 @@ app.use((err, req, res, next) => {
 // Server start
 const port = process.env.PORT || 8080;
 async function startServer() {
-  await mongoose.connect(dbUrl);
-  console.log("connected to DB");
-
   app.listen(port, () => {
     console.log(`server is listening to port ${port}`);
   });
+
+  await mongoose.connect(dbUrl, { serverSelectionTimeoutMS: 10000 });
+  console.log("connected to DB");
 }
 
 startServer().catch((err) => {
